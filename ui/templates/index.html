@@ -9,12 +9,14 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <style>
         :root {
-            --bg: #0b0f1a;
-            --surface: #141928;
-            --surface2: #1c2236;
-            --border: rgba(255, 255, 255, 0.08);
-            --accent: #6366f1;
-            --accent2: #8b5cf6;
+            --bg: #f5f5f0;
+            --surface: #ffffff;
+            --surface2: #f0efe9;
+            --border: #d9d8d2;
+            --accent: #4f46e5;
+            --text: #1a1a1a;
+            --text-muted: #6b6b6b;
+            --text-subtle: #9a9a9a;
         }
 
         * {
@@ -23,7 +25,7 @@
 
         body {
             background: var(--bg);
-            color: #e2e8f0;
+            color: var(--text);
             font-family: 'Inter', system-ui, sans-serif;
             margin: 0;
             min-height: 100vh;
@@ -39,26 +41,28 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
+            background: #c8c7c0;
             border-radius: 3px;
         }
 
-        /* Glass card */
+        /* Card */
         .glass {
             background: var(--surface);
             border: 1px solid var(--border);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
         }
 
         /* Table */
         .tbl th {
             background: var(--surface2);
-            color: #94a3b8;
+            color: var(--text-muted);
             font-size: 0.845rem;
             font-weight: 600;
             letter-spacing: 0.05em;
             text-transform: uppercase;
             padding: 10px 14px;
             white-space: nowrap;
+            border-bottom: 2px solid var(--border);
         }
 
         .tbl td {
@@ -66,6 +70,7 @@
             border-bottom: 1px solid var(--border);
             font-size: 0.945rem;
             vertical-align: top;
+            color: var(--text);
         }
 
         .tbl tr:last-child td {
@@ -73,7 +78,7 @@
         }
 
         .tbl tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
+            background: #fafaf7;
         }
 
         /* Badges */
@@ -88,15 +93,15 @@
         }
 
         .badge-green {
-            background: rgba(34, 197, 94, 0.15);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.25);
+            background: #e8f5ec;
+            color: #1d8a3f;
+            border: 1px solid #b6dfc3;
         }
 
         .badge-red {
-            background: rgba(239, 68, 68, 0.15);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.25);
+            background: #fdf0f0;
+            color: #c0392b;
+            border: 1px solid #f0c0bc;
         }
 
         /* Buttons */
@@ -121,83 +126,85 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: var(--accent);
             color: #fff;
+            border: 1px solid var(--accent);
         }
 
         .btn-primary:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+            background: #3730a3;
+            border-color: #3730a3;
         }
 
         .btn-secondary {
-            background: var(--surface2);
-            color: #cbd5e1;
+            background: var(--surface);
+            color: var(--text-muted);
             border: 1px solid var(--border);
         }
 
         .btn-secondary:hover:not(:disabled) {
-            border-color: #6366f1;
-            color: #a5b4fc;
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
         .btn-crawl {
-            background: rgba(99, 102, 241, 0.15);
-            color: #a5b4fc;
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: #eef2ff;
+            color: var(--accent);
+            border: 1px solid #c7d2fe;
         }
 
         .btn-crawl:hover:not(:disabled) {
-            background: rgba(99, 102, 241, 0.25);
+            background: #e0e7ff;
         }
 
         .btn-see {
-            background: rgba(139, 92, 246, 0.15);
-            color: #c4b5fd;
-            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: #f3f0ff;
+            color: #5b21b6;
+            border: 1px solid #ddd6fe;
             font-size: 0.845rem;
             padding: 4px 10px;
         }
 
         .btn-see:hover {
-            background: rgba(139, 92, 246, 0.25);
+            background: #ede9fe;
         }
 
         .btn-edit {
-            background: rgba(245, 158, 11, 0.12);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.25);
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
         }
 
         .btn-edit:hover {
-            background: rgba(245, 158, 11, 0.2);
+            background: #fef3c7;
         }
 
         .btn-delete {
-            background: rgba(239, 68, 68, 0.12);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.25);
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
         }
 
         .btn-delete:hover {
-            background: rgba(239, 68, 68, 0.2);
+            background: #fee2e2;
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            background: #dc2626;
             color: #fff;
+            border: 1px solid #dc2626;
         }
 
         .btn-danger:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+            background: #b91c1c;
+            border-color: #b91c1c;
         }
 
         /* Input / Textarea */
         .field {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
+            background: #fff;
+            border: 1px solid var(--border);
+            color: var(--text);
             border-radius: 8px;
             padding: 9px 12px;
             font-size: 0.955rem;
@@ -207,19 +214,19 @@
 
         .field:focus {
             outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
         }
 
         .field::placeholder {
-            color: #475569;
+            color: #aaa;
         }
 
         .field-label {
             display: block;
             font-size: 0.875rem;
             font-weight: 600;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin-bottom: 5px;
             letter-spacing: 0.03em;
             text-transform: uppercase;
@@ -243,12 +250,12 @@
         }
 
         .toggle-track.on {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: var(--accent);
         }
 
         .toggle-track.off {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: #d1d0ca;
+            border: 1px solid #b8b7b1;
         }
 
         .toggle-thumb {
@@ -274,8 +281,8 @@
         .backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(3px);
             z-index: 40;
             display: flex;
             align-items: center;
@@ -292,7 +299,7 @@
         .spinner {
             width: 14px;
             height: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.4);
             border-top-color: #fff;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
@@ -300,8 +307,8 @@
 
         /* Results table */
         .res-tbl th {
-            background: #1a2235;
-            color: #64748b;
+            background: var(--surface2);
+            color: var(--text-muted);
             font-size: 0.825rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -310,13 +317,19 @@
             position: sticky;
             top: 0;
             z-index: 1;
+            border-bottom: 2px solid var(--border);
         }
 
         .res-tbl td {
             padding: 10px 14px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid var(--border);
             font-size: 0.925rem;
             vertical-align: top;
+            color: var(--text);
+        }
+
+        .res-tbl tr:hover td {
+            background: #fafaf7;
         }
 
         .res-tbl tr:last-child td {
@@ -327,7 +340,7 @@
         .thumb {
             cursor: pointer;
             border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             width: 80px;
             height: 50px;
             object-fit: cover;
@@ -337,7 +350,7 @@
 
         .thumb:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
         }
 
         /* Fade transitions */
@@ -354,7 +367,7 @@
         /* Top-bar */
         .topbar {
             background: var(--surface);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--border);
             padding: 0 24px;
             height: 60px;
             display: flex;
@@ -363,23 +376,25 @@
             position: sticky;
             top: 0;
             z-index: 30;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
         }
 
         .match-yes {
-            color: #4ade80;
+            color: #1d8a3f;
         }
 
         .match-no {
-            color: #f87171;
+            color: #b91c1c;
         }
 
         code {
-            background: rgba(255, 255, 255, 0.07);
+            background: #f0eff9;
             border-radius: 4px;
-            padding: 1px 5px;
+            padding: 1px 6px;
             font-size: 0.905rem;
             font-family: 'JetBrains Mono', monospace;
-            color: #a5b4fc;
+            color: #4338ca;
+            border: 1px solid #ddd6fe;
         }
     </style>
 </head>
@@ -393,7 +408,7 @@
         <header class="topbar">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">
+                    style="background: #4f46e5;">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -416,7 +431,7 @@
                     </svg>
                     Add Product
                 </button>
-                <a href="/logout" class="btn btn-secondary text-slate-400">
+                <a href="/logout" class="btn btn-secondary">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -432,7 +447,7 @@
             <div v-if="loading" class="flex flex-col items-center justify-center py-24 gap-4">
                 <div class="w-10 h-10 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full"
                     style="border-width:3px;animation:spin 0.8s linear infinite;"></div>
-                <p class="text-slate-400 text-sm">Loading products…</p>
+                <p class="text-sm" style="color: var(--text-muted);">Loading products…</p>
             </div>
 
             <!-- Error state -->
@@ -444,7 +459,7 @@
             <!-- Empty state -->
             <div v-else-if="products.length === 0" class="glass rounded-xl p-16 text-center">
                 <div class="text-5xl mb-4">📦</div>
-                <p class="text-slate-400 text-sm">No products yet. Add your first product!</p>
+                <p class="text-sm" style="color: var(--text-muted);">No products yet. Add your first product!</p>
             </div>
 
             <!-- Product table -->
@@ -467,23 +482,25 @@
                         </thead>
                         <tbody>
                             <tr v-for="p in products" :key="p.id">
-                                <td class="font-medium text-slate-200 max-w-xs">
+                                <td class="font-medium max-w-xs" style="color: var(--text);">
                                     <div class="truncate" :title="p.name">{{ p.name }}</div>
                                 </td>
-                                <td class="text-slate-400 max-w-xs">
+                                <td class="max-w-xs" style="color: var(--text-muted);">
                                     <div class="truncate" :title="p.description">{{ p.description || '—' }}</div>
                                 </td>
                                 <td>
                                     <ul v-if="p.top_features && p.top_features.length"
-                                        class="list-disc list-inside text-slate-400 space-y-0.5 text-xs">
+                                        class="list-disc list-inside space-y-0.5 text-xs"
+                                        style="color: var(--text-muted);">
                                         <li v-for="f in p.top_features.slice(0,3)" :key="f" class="truncate max-w-48"
                                             :title="f">{{ f }}</li>
-                                        <li v-if="p.top_features.length > 3" class="text-slate-500 italic">+{{
+                                        <li v-if="p.top_features.length > 3" class="italic"
+                                            style="color: var(--text-subtle);">+{{
                                             p.top_features.length - 3 }} more</li>
                                     </ul>
-                                    <span v-else class="text-slate-600">—</span>
+                                    <span v-else style="color: var(--text-subtle);">—</span>
                                 </td>
-                                <td class="text-slate-400">{{ p.category || '—' }}</td>
+                                <td style="color: var(--text-muted);">{{ p.category || '—' }}</td>
                                 <td class="text-center">
                                     <span :class="p.is_live ? 'badge-green' : 'badge-red'" class="badge">
                                         <span>{{ p.is_live ? '●' : '●' }}</span>
@@ -495,11 +512,13 @@
                                         {{ p.is_sellable ? 'Yes' : 'No' }}
                                     </span>
                                 </td>
-                                <td class="text-right font-mono text-slate-300">{{ p.selling_price != null ? '₹' +
+                                <td class="text-right font-mono" style="color: var(--text);">{{ p.selling_price != null
+                                    ? '₹' +
                                     Number(p.selling_price).toFixed(2) : '—' }}</td>
-                                <td class="text-right font-mono text-slate-400 line-through">{{ p.original_price != null
+                                <td class="text-right font-mono line-through" style="color: var(--text-muted);">{{
+                                    p.original_price != null
                                     ? '₹' + Number(p.original_price).toFixed(2) : '—' }}</td>
-                                <td class="text-right text-slate-300">{{ p.discount_percentage != null ?
+                                <td class="text-right" style="color: var(--text);">{{ p.discount_percentage != null ?
                                     Number(p.discount_percentage).toFixed(1) + '%' : '—' }}</td>
                                 <td>
                                     <div class="flex items-center gap-1.5 flex-wrap justify-center">
@@ -552,11 +571,14 @@
             <div v-if="showProductModal" class="backdrop" @click.self="closeProductModal">
                 <div class="glass rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
                     @click.stop>
-                    <div
-                        class="sticky top-0 z-10 glass px-6 pt-6 pb-4 border-b border-white/5 flex items-center justify-between">
-                        <h2 class="text-lg font-bold text-white">{{ editingProduct ? 'Edit Product' : 'Add Product' }}
+                    <div class="sticky top-0 z-10 glass px-6 pt-6 pb-4 flex items-center justify-between"
+                        style="border-bottom: 1px solid var(--border);">
+                        <h2 class="text-lg font-bold" style="color: var(--text);">{{ editingProduct ? 'Edit Product' :
+                            'Add Product' }}
                         </h2>
-                        <button class="text-slate-400 hover:text-white transition-colors" @click="closeProductModal">
+                        <button class="transition-colors" style="color: var(--text-muted);" @click="closeProductModal"
+                            onmouseover="this.style.color='var(--text)'"
+                            onmouseout="this.style.color='var(--text-muted)'">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12" />
@@ -576,12 +598,12 @@
                                     placeholder="Product description" id="form-description"></textarea>
                             </div>
                             <div class="col-span-2">
-                                <label class="field-label">Top Features <span
-                                        class="text-slate-500 normal-case font-normal">(JSON array of
+                                <label class="field-label">Top Features <span class="text-sm font-normal"
+                                        style="color: var(--text-subtle);">(JSON array of
                                         strings)</span></label>
                                 <textarea v-model="form.top_features_raw" class="field font-mono text-xs" rows="3"
                                     placeholder='["Feature A", "Feature B"]' id="form-top-features"></textarea>
-                                <p v-if="formErrors.top_features" class="text-red-400 text-xs mt-1">{{
+                                <p v-if="formErrors.top_features" class="text-xs mt-1" style="color: #b91c1c;">{{
                                     formErrors.top_features }}</p>
                             </div>
                             <div>
@@ -594,14 +616,14 @@
                                     <div class="toggle-track" :class="form.is_live ? 'on' : 'off'">
                                         <div class="toggle-thumb" :class="form.is_live ? 'on' : 'off'"></div>
                                     </div>
-                                    <span class="text-sm text-slate-300">Is Live</span>
+                                    <span class="text-sm" style="color: var(--text);">Is Live</span>
                                 </div>
                                 <div class="toggle-wrap" @click="form.is_sellable = !form.is_sellable"
                                     id="toggle-is-sellable">
                                     <div class="toggle-track" :class="form.is_sellable ? 'on' : 'off'">
                                         <div class="toggle-thumb" :class="form.is_sellable ? 'on' : 'off'"></div>
                                     </div>
-                                    <span class="text-sm text-slate-300">Is Sellable</span>
+                                    <span class="text-sm" style="color: var(--text);">Is Sellable</span>
                                 </div>
                             </div>
                             <div>
@@ -620,8 +642,8 @@
                                     placeholder="23.00" id="form-discount" />
                             </div>
                             <div class="col-span-2">
-                                <label class="field-label">Retailers <span
-                                        class="text-slate-500 normal-case font-normal">(JSON array)</span></label>
+                                <label class="field-label">Retailers <span class="text-sm font-normal"
+                                        style="color: var(--text-subtle);">(JSON array)</span></label>
                                 <textarea v-model="form.retailers_raw" class="field font-mono text-xs" rows="8"
                                     id="form-retailers"
                                     placeholder='[{"platform":"Amazon","url":"https://...","locators":{"name":"#productTitle",...}}]'></textarea>
@@ -629,12 +651,12 @@
                                     }}</p>
                             </div>
                         </div>
-                        <div v-if="formErrors.general"
-                            class="text-red-400 text-sm bg-red-500/10 rounded-lg p-3 border border-red-500/20">{{
+                        <div v-if="formErrors.general" class="text-sm rounded-lg p-3"
+                            style="color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca;">{{
                             formErrors.general }}</div>
                     </div>
-                    <div
-                        class="sticky bottom-0 glass px-6 py-4 border-t border-white/5 flex items-center justify-end gap-3">
+                    <div class="sticky bottom-0 glass px-6 py-4 flex items-center justify-end gap-3"
+                        style="border-top: 1px solid var(--border);">
                         <button class="btn btn-secondary" @click="closeProductModal" id="form-cancel">Cancel</button>
                         <button class="btn btn-primary" @click="submitProduct" :disabled="formSubmitting"
                             id="form-submit">
@@ -650,15 +672,18 @@
         <transition name="fade">
             <div v-if="deletingProduct" class="backdrop" @click.self="deletingProduct = null">
                 <div class="glass rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl text-center">
-                    <div class="w-14 h-14 rounded-2xl bg-red-500/15 flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                        style="background: #fef2f2; border: 1px solid #fecaca;">
+                        <svg class="w-6 h-6" style="color: #b91c1c;" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                     </div>
-                    <h3 class="text-white font-bold text-lg mb-2">Delete Product?</h3>
-                    <p class="text-slate-400 text-sm mb-6">This will permanently delete <strong
-                            class="text-slate-200">{{ deletingProduct?.name }}</strong>. This action cannot be undone.
+                    <h3 class="font-bold text-lg mb-2" style="color: var(--text);">Delete Product?</h3>
+                    <p class="text-sm mb-6" style="color: var(--text-muted);">This will permanently delete <strong
+                            style="color: var(--text);">{{ deletingProduct?.name }}</strong>. This action cannot be
+                        undone.
                     </p>
                     <div class="flex gap-3 justify-center">
                         <button class="btn btn-secondary" @click="deletingProduct = null"
@@ -679,13 +704,16 @@
                 <div class="glass rounded-2xl shadow-2xl w-full max-h-[92vh] overflow-hidden flex flex-col"
                     style="width: 96vw; max-width: 96vw; margin: 0 2vw;">
                     <!-- Header -->
-                    <div class="px-6 pt-6 pb-4 border-b border-white/5 flex items-center justify-between flex-shrink-0">
+                    <div class="px-6 pt-6 pb-4 flex items-center justify-between flex-shrink-0"
+                        style="border-bottom: 1px solid var(--border);">
                         <div>
-                            <h2 class="text-lg font-bold text-white">Crawl Results</h2>
-                            <p class="text-slate-400 text-sm mt-0.5">{{ currentResult.product_name }}</p>
+                            <h2 class="text-lg font-bold" style="color: var(--text);">Crawl Results</h2>
+                            <p class="text-sm mt-0.5" style="color: var(--text-muted);">{{ currentResult.product_name }}
+                            </p>
                         </div>
-                        <button class="text-slate-400 hover:text-white transition-colors" @click="closeResults"
-                            id="results-close">
+                        <button class="transition-colors" style="color: var(--text-muted);" @click="closeResults"
+                            onmouseover="this.style.color='var(--text)'"
+                            onmouseout="this.style.color='var(--text-muted)'" id="results-close">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12" />
@@ -700,9 +728,9 @@
                                     <tr>
                                         <th class="text-left w-48">Field / Expected</th>
                                         <th v-for="r in currentResult.retailers" :key="r.platform" class="text-left">
-                                            <div class="font-bold text-indigo-400">{{ r.platform }}</div>
-                                            <div class="text-slate-500 text-xs font-normal truncate max-w-48"
-                                                :title="r.url">{{ r.url }}</div>
+                                            <div class="font-bold" style="color: var(--accent);">{{ r.platform }}</div>
+                                            <div class="text-xs font-normal truncate max-w-48"
+                                                style="color: var(--text-subtle);" :title="r.url">{{ r.url }}</div>
                                         </th>
                                     </tr>
                                 </thead>
@@ -710,10 +738,10 @@
                                     <tr v-for="field in resultFields" :key="field.key">
                                         <!-- Expected column -->
                                         <td>
-                                            <div
-                                                class="font-semibold text-slate-300 text-xs mb-1 uppercase tracking-wider">
+                                            <div class="font-semibold text-xs mb-1 uppercase tracking-wider"
+                                                style="color: var(--text-muted);">
                                                 {{ field.label }}</div>
-                                            <div class="text-slate-400 text-xs">
+                                            <div class="text-xs" style="color: var(--text-muted);">
                                                 <template v-if="Array.isArray(getExpected(field.key))">
                                                     <ul class="list-disc list-inside space-y-0.5 text-xs">
                                                         <li v-for="item in getExpected(field.key)" :key="item"
@@ -766,7 +794,7 @@
                                                 </div>
                                             </template>
                                             <template v-else>
-                                                <span class="text-slate-600 text-xs">—</span>
+                                                <span class="text-xs" style="color: var(--text-subtle);">—</span>
                                             </template>
                                         </td>
                                     </tr>
@@ -784,7 +812,9 @@
                 @click.self="fullscreenScreenshot = null">
                 <div class="relative max-w-4xl max-h-[90vh] mx-4" @click.stop>
                     <button
-                        class="absolute -top-3 -right-3 z-10 w-8 h-8 rounded-full bg-slate-700 border border-white/10 text-white flex items-center justify-center hover:bg-slate-600 transition-colors"
+                        class="absolute -top-3 -right-3 z-10 w-8 h-8 rounded-full border text-white flex items-center justify-center transition-colors"
+                        style="background:#4b5563; border-color: var(--border);"
+                        onmouseover="this.style.background='#374151'" onmouseout="this.style.background='#4b5563'"
                         @click="fullscreenScreenshot = null" id="screenshot-close">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -792,8 +822,8 @@
                         </svg>
                     </button>
                     <img :src="'data:image/png;base64,' + fullscreenScreenshot"
-                        class="rounded-xl shadow-2xl max-w-full max-h-[85vh] object-contain border border-white/10"
-                        alt="Full screenshot" />
+                        class="rounded-xl shadow-2xl max-w-full max-h-[85vh] object-contain"
+                        style="border: 1px solid var(--border);" alt="Full screenshot" />
                 </div>
             </div>
         </transition>
