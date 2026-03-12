@@ -1,0 +1,30 @@
+[
+    {
+        "platform": "Kohls",
+        "url": "https://www.kohls.com/product/prd-7529632/nunn-bush-jarvis-mens-cap-toe-oxford-shoes.jsp?skuid=28803430",
+        "locators": {
+            "name": ".product-title",
+            "description": "#productDetailsTabContent div.inner p:first-child",
+            "top_features": "#feature-bullets",
+            "category": "#wayfinding-breadcrumbs_feature_div",
+            "add_to_cart": "#add-to-cart-button",
+            "selling_price": ".a-price-whole",
+            "original_price": ".a-text-strike",
+            "discount_percentage": ".savingsPercentage"
+        }
+    },
+    {
+        "platform": "DSW",
+        "url": "https://www.dsw.com/product/nunn-bush-jarvis-cap-toe-oxford/598709?activeColor=221",
+        "locators": {
+            "name": "h1#product-name span",
+            "description": "p[_ngcontent-ng-c297494238][itemprop=\"description\"].description",
+            "top_features": "ul[_ngcontent-ng-c297494238].nobul span ul",
+            "category": "#wayfinding-breadcrumbs_feature_div",
+            "add_to_cart": "button#add-to-bag-button",
+            "selling_price": "span[_ngcontent-ng-c572501101]#price",
+            "original_price": ".pdp-landing-header__pricing__compare__value strikethrough-comp",
+            "discount_percentage": ".savingsPercentage"
+        }
+    }
+]
