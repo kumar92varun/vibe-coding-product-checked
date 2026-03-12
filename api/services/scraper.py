@@ -2,16 +2,17 @@
 Playwright-based async scraper for product data integrity checking.
 
 For each retailer attached to a product, this module:
-  1. Opens the retailer URL
-  2. Uses the CSS locators defined in the retailer's `locators` dict to find each element
-  3. Extracts the text / existence of the element
-  4. Takes a screenshot of each located element (encoded as base64)
-  5. Compares the found value against the expected value stored in the DB product
+  1. Opens the retailer URL with full JS rendering (waits for networkidle)
+  2. Applies stealth settings to reduce bot-detection blockage
+  3. Uses the CSS locators defined in the retailer's `locators` dict
+  4. Waits up to ELEMENT_TIMEOUT ms for each element to appear in the DOM
+  5. Takes a screenshot of each located element (base64-encoded PNG)
+  6. Compares found values against expected values from the DB product
 
 Special handling:
-  - top_features: ordered list comparison
-  - add_to_cart / is_sellable: check element existence → compare to product.is_sellable
-  - locator_not_found: returned when no element matches
+  - top_features:          ordered list comparison
+  - add_to_cart/is_sellable: check element visibility → compare to product.is_sellable
+  - locator_not_found:     returned when element is absent after the wait
 """
 
 import asyncio
@@ -23,6 +24,18 @@ from typing import Any, Optional
 from playwright.async_api import async_playwright, Locator, Page
 
 
+# ── Config ────────────────────────────────────────────────────────────────────
+
+# How long (ms) to wait for each element to appear in the DOM
+ELEMENT_TIMEOUT = 15000
+
+# How long (ms) to wait for the page to reach networkidle
+PAGE_TIMEOUT = 60000
+
+# Extra settle time (ms) after networkidle — gives JS frameworks time to finish rendering
+SETTLE_MS = 2000
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _clean_text(raw: str) -> str:
@@ -31,7 +44,7 @@ def _clean_text(raw: str) -> str:
 
 
 def _parse_decimal(text: str) -> Optional[float]:
-    """Try to parse a price / percentage string as float."""
+    """Try to parse a price / percentage string as float (e.g. '₹1,299' → 1299.0)."""
     cleaned = re.sub(r"[^\d.]", "", text)
     try:
         return float(Decimal(cleaned))
@@ -40,7 +53,7 @@ def _parse_decimal(text: str) -> Optional[float]:
 
 
 async def _screenshot_b64(locator: Locator) -> Optional[str]:
-    """Return a base64-encoded PNG screenshot of the first element matched by locator."""
+    """Return a base64-encoded PNG screenshot of the first matched element."""
     try:
         screenshot_bytes = await locator.first.screenshot(type="png")
         return base64.b64encode(screenshot_bytes).decode("utf-8")
@@ -50,11 +63,16 @@ async def _screenshot_b64(locator: Locator) -> Optional[str]:
 
 async def _extract_field(page: Page, css: str, field_name: str) -> tuple[Any, Optional[str]]:
     """
-    Locate element by CSS selector, return (value, screenshot_b64).
-    Returns ("locator_not_found", None) when element is absent.
+    Wait for a CSS selector to appear, then extract its value.
+    Returns ("locator_not_found", None) if the element never appears.
     """
     try:
         loc = page.locator(css)
+
+        # Wait for the element to be present in the DOM
+        await loc.first.wait_for(state="attached", timeout=ELEMENT_TIMEOUT)
+
+        # Confirm at least one element matched
         count = await loc.count()
         if count == 0:
             return "locator_not_found", None
@@ -62,7 +80,7 @@ async def _extract_field(page: Page, css: str, field_name: str) -> tuple[Any, Op
         screenshot = await _screenshot_b64(loc)
 
         if field_name == "top_features":
-            # Collect all <li> text nodes under the locator
+            # Collect <li> children; fall back to splitlines
             items_loc = loc.first.locator("li")
             items_count = await items_loc.count()
             if items_count > 0:
@@ -74,13 +92,12 @@ async def _extract_field(page: Page, css: str, field_name: str) -> tuple[Any, Op
                         texts.append(cleaned)
                 return texts, screenshot
             else:
-                # Fall back to inner_text of the container
                 raw = await loc.first.inner_text()
                 lines = [_clean_text(line) for line in raw.splitlines() if _clean_text(line)]
                 return lines, screenshot
 
         elif field_name == "add_to_cart":
-            # Return True if the button is visible
+            # Check visibility (button may exist but be hidden)
             visible = await loc.first.is_visible()
             return visible, screenshot
 
@@ -102,7 +119,6 @@ def _compare(field_name: str, expected: Any, found: Any) -> bool:
         return False
 
     if field_name == "top_features":
-        # Ordered list comparison
         return expected == found
 
     if field_name in ("selling_price", "original_price", "discount_percentage"):
@@ -112,65 +128,89 @@ def _compare(field_name: str, expected: Any, found: Any) -> bool:
             return False
 
     if field_name == "is_sellable":
-        # found is a bool (cart button existence)
         return bool(expected) == bool(found)
 
-    # String comparison (case-insensitive, whitespace-normalised)
     return str(expected).strip().lower() == str(found).strip().lower()
 
 
-# ── Core scraping for one retailer ───────────────────────────────────────────
+# ── Field mapping ─────────────────────────────────────────────────────────────
 
 FIELD_MAP = {
     "name": "name",
     "description": "description",
     "top_features": "top_features",
     "category": "category",
-    "add_to_cart": "is_sellable",   # maps add_to_cart locator → is_sellable field
+    "add_to_cart": "is_sellable",   # locator key → product field
     "selling_price": "selling_price",
     "original_price": "original_price",
     "discount_percentage": "discount_percentage",
 }
 
 
+# ── Stealth JS injected before every page ────────────────────────────────────
+
+_STEALTH_JS = """
+// Hide webdriver flag
+Object.defineProperty(navigator, 'webdriver', { get: () => false });
+
+// Spoof plugins array
+Object.defineProperty(navigator, 'plugins', {
+    get: () => [1, 2, 3, 4, 5],
+});
+
+// Spoof languages
+Object.defineProperty(navigator, 'languages', {
+    get: () => ['en-US', 'en'],
+});
+"""
+
+
+# ── Core scraping for one retailer ───────────────────────────────────────────
+
 async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
     """
-    Scrape a single retailer page.
-    Returns the retailer result dict as per the spec response shape.
+    Navigate to a retailer URL and extract each specified locator field.
+    Returns the result dict per the spec response shape.
     """
     url = retailer.get("url", "")
     platform = retailer.get("platform", "")
     locators: dict = retailer.get("locators", {})
 
+    # Inject stealth JS before the page starts loading
+    await page.add_init_script(_STEALTH_JS)
+
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-    except Exception as e:
-        return {
-            "platform": platform,
-            "url": url,
-            "error": f"Failed to load page: {e}",
-            "fields": {},
-        }
+        # wait_until="networkidle" ensures Ajax/XHR settle before we query the DOM
+        await page.goto(url, wait_until="networkidle", timeout=PAGE_TIMEOUT)
+    except Exception:
+        # networkidle can time out on pages with infinite polling; retry with load
+        try:
+            await page.goto(url, wait_until="load", timeout=PAGE_TIMEOUT)
+        except Exception as e:
+            return {
+                "platform": platform,
+                "url": url,
+                "error": f"Failed to load page: {e}",
+                "fields": {},
+            }
+
+    # Give JS frameworks (React/Angular/Vue) a moment to finish rendering
+    await page.wait_for_timeout(SETTLE_MS)
 
     fields_result = {}
 
     for locator_key, css in locators.items():
         product_field = FIELD_MAP.get(locator_key, locator_key)
 
-        # Determine expected value
+        # Determine expected value from product
         if locator_key == "add_to_cart":
             expected = getattr(product, "is_sellable", None)
         else:
             raw_expected = getattr(product, product_field, None)
-            # Convert Decimal to float for JSON serialisation
-            if isinstance(raw_expected, Decimal):
-                expected = float(raw_expected)
-            else:
-                expected = raw_expected
+            expected = float(raw_expected) if isinstance(raw_expected, Decimal) else raw_expected
 
         found, screenshot = await _extract_field(page, css, locator_key)
 
-        # For is_sellable the expected is bool, found is bool (from add_to_cart)
         if locator_key == "add_to_cart":
             match = _compare("is_sellable", expected, found)
             fields_result["is_sellable"] = {
@@ -180,10 +220,8 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
                 "screenshot": screenshot,
             }
         else:
-            # For top_features expected might come as list
             if isinstance(expected, Decimal):
                 expected = float(expected)
-
             match = _compare(product_field, expected, found)
             fields_result[product_field] = {
                 "expected": expected,
@@ -209,16 +247,31 @@ async def scrape_product(product: Any) -> dict:
     retailers = product.retailers or []
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-blink-features=AutomationControlled",
+                "--disable-infobars",
+                "--disable-dev-shm-usage",
+            ],
+        )
         try:
             async def scrape_one(retailer: dict) -> dict:
                 context = await browser.new_context(
                     user_agent=(
-                        "Mozilla/5.0 (X11; Linux x86_64) "
+                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
                         "AppleWebKit/537.36 (KHTML, like Gecko) "
-                        "Chrome/120.0.0.0 Safari/537.36"
+                        "Chrome/131.0.0.0 Safari/537.36"
                     ),
-                    viewport={"width": 1280, "height": 900},
+                    viewport={"width": 1440, "height": 900},
+                    # Pretend to be a real browser with common headers
+                    extra_http_headers={
+                        "Accept-Language": "en-US,en;q=0.9",
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    },
+                    java_script_enabled=True,
+                    ignore_https_errors=True,
                 )
                 page = await context.new_page()
                 try:
