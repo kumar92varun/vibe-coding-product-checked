@@ -27,13 +27,13 @@ from playwright.async_api import async_playwright, Locator, Page
 # ── Config ────────────────────────────────────────────────────────────────────
 
 # How long (ms) to wait for each element to appear in the DOM
-ELEMENT_TIMEOUT = 15000
+ELEMENT_TIMEOUT = 8000
 
-# How long (ms) to wait for the page to reach networkidle
-PAGE_TIMEOUT = 60000
+# How long (ms) to wait for the initial page DOM
+PAGE_TIMEOUT = 20000
 
-# Extra settle time (ms) after networkidle — gives JS frameworks time to finish rendering
-SETTLE_MS = 2000
+# Extra settle time (ms) after DOM connects — gives JS frameworks time to mount
+SETTLE_MS = 1500
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -180,28 +180,19 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
     await page.add_init_script(_STEALTH_JS)
 
     try:
-        # wait_until="networkidle" ensures Ajax/XHR settle before we query the DOM
-        await page.goto(url, wait_until="networkidle", timeout=PAGE_TIMEOUT)
-    except Exception:
-        # networkidle can time out on pages with infinite polling; retry with load
-        try:
-            await page.goto(url, wait_until="load", timeout=PAGE_TIMEOUT)
-        except Exception as e:
-            return {
-                "platform": platform,
-                "url": url,
-                "error": f"Failed to load page: {e}",
-                "fields": {},
-            }
+        # wait_until="domcontentloaded" is much faster than networkidle and load.
+        # Retailer pages with tracking/analytics polling often NEVER reach networkidle.
+        await page.goto(url, wait_until="domcontentloaded", timeout=PAGE_TIMEOUT)
+    except Exception as e:
+        return {
+            "platform": platform,
+            "url": url,
+            "error": f"Failed to load page: {e}",
+            "fields": {},
+        }
 
     # Give JS frameworks (React/Angular/Vue) a moment to finish rendering
     await page.wait_for_timeout(SETTLE_MS)
-
-    try:
-        full_page_screenshot_bytes = await page.screenshot(type="png", full_page=True)
-        full_page_screenshot = base64.b64encode(full_page_screenshot_bytes).decode("utf-8")
-    except Exception:
-        full_page_screenshot = None
 
     fields_result = {}
 
@@ -239,6 +230,12 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
                 "match": match,
                 "screenshot": screenshot,
             }
+
+    try:
+        full_page_screenshot_bytes = await page.screenshot(type="png", full_page=True)
+        full_page_screenshot = base64.b64encode(full_page_screenshot_bytes).decode("utf-8")
+    except Exception:
+        full_page_screenshot = None
 
     return {
         "platform": platform,
