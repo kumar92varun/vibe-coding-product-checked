@@ -15,11 +15,11 @@
     },
     {
         "platform": "DSW",
-        "url": "https://www.dsw.com/product/nunn-bush-jarvis-cap-toe-oxford/598709?activeColor=221",
+        "url": "https://www.dsw.com/product/nunn-bush-laguna-fisherman-sandal/598722?activeColor=200",
         "locators": {
             "name": "h1#product-name span",
             "description": "p[_ngcontent-ng-c297494238][itemprop=\"description\"].description",
-            "top_features": "ul[_ngcontent-ng-c297494238].nobul span ul",
+            "top_features": "div[_ngcontent-ng-c297494238].features ul[_ngcontent-ng-c297494238].nobul span ul",
             "category": "#wayfinding-breadcrumbs_feature_div",
             "add_to_cart": "button#add-to-bag-button",
             "selling_price": "span[_ngcontent-ng-c572501101]#price",
