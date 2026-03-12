@@ -209,7 +209,11 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
             raw_expected = getattr(product, product_field, None)
             expected = float(raw_expected) if isinstance(raw_expected, Decimal) else raw_expected
 
-        found, screenshot = await _extract_field(page, css, locator_key)
+        # Skip Playwright lookup entirely if the locator is null in the JSON
+        if css is None:
+            found, screenshot = "locator_not_found", None
+        else:
+            found, screenshot = await _extract_field(page, css, locator_key)
 
         if locator_key == "add_to_cart":
             match = _compare("is_sellable", expected, found)
