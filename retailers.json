@@ -3,14 +3,14 @@
         "platform": "Kohls",
         "url": "https://www.kohls.com/product/prd-7529632/nunn-bush-jarvis-mens-cap-toe-oxford-shoes.jsp?skuid=28803430",
         "locators": {
-            "name": ".product-title",
+            "name": "h1.product-title",
             "description": "#productDetailsTabContent div.inner p:first-child",
-            "top_features": "#feature-bullets",
-            "category": "#wayfinding-breadcrumbs_feature_div",
-            "add_to_cart": "#add-to-cart-button",
-            "selling_price": ".a-price-whole",
-            "original_price": ".a-text-strike",
-            "discount_percentage": ".savingsPercentage"
+            "top_features": "#productDetailsTabContent div.inner ul:first-child",
+            "category": ".bread-crupms",
+            "add_to_cart": "input[type=\"button\"]#addtobagID",
+            "selling_price": ".pdpprice-row2-main-text",
+            "original_price": "body",
+            "discount_percentage": "body"
         }
     },
     {
