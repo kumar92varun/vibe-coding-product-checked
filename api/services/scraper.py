@@ -197,6 +197,12 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
     # Give JS frameworks (React/Angular/Vue) a moment to finish rendering
     await page.wait_for_timeout(SETTLE_MS)
 
+    try:
+        full_page_screenshot_bytes = await page.screenshot(type="png", full_page=True)
+        full_page_screenshot = base64.b64encode(full_page_screenshot_bytes).decode("utf-8")
+    except Exception:
+        full_page_screenshot = None
+
     fields_result = {}
 
     for locator_key, css in locators.items():
@@ -237,6 +243,7 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
     return {
         "platform": platform,
         "url": url,
+        "full_page_screenshot": full_page_screenshot,
         "fields": fields_result,
     }
 

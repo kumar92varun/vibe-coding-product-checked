@@ -729,21 +729,38 @@
                                         <th class="text-left w-48">Field / Expected</th>
                                         <th v-for="r in currentResult.retailers" :key="r.platform" class="text-left">
                                             <div class="font-bold" style="color: var(--accent);">{{ r.platform }}</div>
-                                            <div class="text-xs font-normal truncate max-w-48"
-                                                style="color: var(--text-subtle);" :title="r.url">{{ r.url }}</div>
+                                            <a :href="r.url" target="_blank"
+                                                class="text-xs font-normal truncate max-w-48 block hover:underline"
+                                                style="color: var(--accent);" :title="r.url">{{ r.url }}</a>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr v-if="currentResult.retailers && currentResult.retailers.length > 0">
+                                        <td>
+                                            <div class="font-semibold text-xs mb-1 uppercase tracking-wider"
+                                                style="color: var(--text-muted);">
+                                                Full Page Screenshot</div>
+                                            <div style="color: var(--text-muted);">—</div>
+                                        </td>
+                                        <td v-for="r in currentResult.retailers" :key="r.platform">
+                                            <img v-if="r.full_page_screenshot"
+                                                :src="'data:image/png;base64,' + r.full_page_screenshot" class="thumb"
+                                                style="width: auto; height: 120px; object-position: top;"
+                                                alt="Full page screenshot"
+                                                @click="openScreenshot(r.full_page_screenshot)" />
+                                            <span v-else class="text-xs" style="color: var(--text-subtle);">—</span>
+                                        </td>
+                                    </tr>
                                     <tr v-for="field in resultFields" :key="field.key">
                                         <!-- Expected column -->
                                         <td>
                                             <div class="font-semibold text-xs mb-1 uppercase tracking-wider"
                                                 style="color: var(--text-muted);">
                                                 {{ field.label }}</div>
-                                            <div class="text-xs" style="color: var(--text-muted);">
+                                            <div style="color: var(--text-muted);">
                                                 <template v-if="Array.isArray(getExpected(field.key))">
-                                                    <ul class="list-disc list-inside space-y-0.5 text-xs">
+                                                    <ul class="list-disc list-inside space-y-0.5">
                                                         <li v-for="item in getExpected(field.key)" :key="item"
                                                             class="truncate">{{ item }}</li>
                                                     </ul>
@@ -751,7 +768,7 @@
                                                 <template
                                                     v-else-if="getExpected(field.key) === true || getExpected(field.key) === false">
                                                     <span :class="getExpected(field.key) ? 'badge-green' : 'badge-red'"
-                                                        class="badge text-xs">{{ getExpected(field.key) ? 'Yes' : 'No'
+                                                        class="badge">{{ getExpected(field.key) ? 'Yes' : 'No'
                                                         }}</span>
                                                 </template>
                                                 <template v-else>
@@ -766,7 +783,7 @@
                                                     <span class="text-lg leading-none mt-0.5">{{
                                                         r.fields[field.key].match ? '✅' : '🔴' }}</span>
                                                     <div class="flex-1 min-w-0">
-                                                        <div class="text-xs"
+                                                        <div
                                                             :class="r.fields[field.key].match ? 'match-yes' : 'match-no'">
                                                             <template v-if="Array.isArray(r.fields[field.key].found)">
                                                                 <ul class="list-disc list-inside space-y-0.5">
@@ -778,7 +795,7 @@
                                                                 v-else-if="r.fields[field.key].found === true || r.fields[field.key].found === false">
                                                                 <span
                                                                     :class="r.fields[field.key].found ? 'badge-green' : 'badge-red'"
-                                                                    class="badge text-xs">{{ r.fields[field.key].found ?
+                                                                    class="badge">{{ r.fields[field.key].found ?
                                                                     'Yes' : 'No' }}</span>
                                                             </template>
                                                             <template v-else>
@@ -794,7 +811,7 @@
                                                 </div>
                                             </template>
                                             <template v-else>
-                                                <span class="text-xs" style="color: var(--text-subtle);">—</span>
+                                                <span style="color: var(--text-subtle);">—</span>
                                             </template>
                                         </td>
                                     </tr>
