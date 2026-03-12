@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Integrity Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <style>
+        :root {
+            --bg: #0b0f1a;
+            --surface: #141928;
+            --surface2: #1c2236;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #6366f1;
+            --accent2: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: #e2e8f0;
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        /* Glass card */
+        .glass {
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+
+        /* Table */
+        .tbl th {
+            background: var(--surface2);
+            color: #94a3b8;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 10px 14px;
+            white-space: nowrap;
+        }
+
+        .tbl td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.82rem;
+            vertical-align: top;
+        }
+
+        .tbl tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tbl tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .badge-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s;
+            border: none;
+            white-space: nowrap;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--surface2);
+            color: #cbd5e1;
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            border-color: #6366f1;
+            color: #a5b4fc;
+        }
+
+        .btn-crawl {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-crawl:hover:not(:disabled) {
+            background: rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-see {
+            background: rgba(139, 92, 246, 0.15);
+            color: #c4b5fd;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            font-size: 0.72rem;
+            padding: 4px 10px;
+        }
+
+        .btn-see:hover {
+            background: rgba(139, 92, 246, 0.25);
+        }
+
+        .btn-edit {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .btn-edit:hover {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+        }
+
+        /* Input / Textarea */
+        .field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 0.83rem;
+            width: 100%;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .field:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .field::placeholder {
+            color: #475569;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 5px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        /* Toggle */
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .toggle-track {
+            width: 40px;
+            height: 22px;
+            border-radius: 11px;
+            transition: background 0.2s;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .toggle-track.on {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+
+        .toggle-track.off {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+            transition: left 0.2s;
+        }
+
+        .toggle-thumb.on {
+            left: 20px;
+        }
+
+        .toggle-thumb.off {
+            left: 2px;
+        }
+
+        /* Modal backdrop */
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Spinner */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        /* Results table */
+        .res-tbl th {
+            background: #1a2235;
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 14px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .res-tbl td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.8rem;
+            vertical-align: top;
+        }
+
+        .res-tbl tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Thumbnail */
+        .thumb {
+            cursor: pointer;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 80px;
+            height: 50px;
+            object-fit: cover;
+            margin-top: 6px;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .thumb:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Fade transitions */
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity 0.2s;
+        }
+
+        .fade-enter-from,
+        .fade-leave-to {
+            opacity: 0;
+        }
+
+        /* Top-bar */
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .match-yes {
+            color: #4ade80;
+        }
+
+        .match-no {
+            color: #f87171;
+        }
+
+        code {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #a5b4fc;
+        }
+    </style>
+</head>
+
+<body>
+    <script>const FASTAPI_URL = "{{ fastapi_base_url }}";</script>
+    {% raw %}
+    <div id="app">
+
+        <!-- ══════════════ TOP BAR ══════════════ -->
+        <header class="topbar">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <span class="font-bold text-white text-base tracking-tight">Product Integrity Checker</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="btn btn-primary" :disabled="runAllLoading" @click="runAll" id="btn-run-all">
+                    <span v-if="runAllLoading" class="spinner"></span>
+                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>{{ runAllLoading ? 'Running…' : 'RUN ALL' }}</span>
+                </button>
+                <button class="btn btn-secondary" @click="openAddModal" id="btn-add-product">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Product
+                </button>
+                <a href="/logout" class="btn btn-secondary text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                </a>
+            </div>
+        </header>
+
+        <!-- ══════════════ MAIN CONTENT ══════════════ -->
+        <main class="p-6">
+            <!-- Loading state -->
+            <div v-if="loading" class="flex flex-col items-center justify-center py-24 gap-4">
+                <div class="w-10 h-10 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full"
+                    style="border-width:3px;animation:spin 0.8s linear infinite;"></div>
+                <p class="text-slate-400 text-sm">Loading products…</p>
+            </div>
+
+            <!-- Error state -->
+            <div v-else-if="fetchError" class="glass rounded-xl p-6 text-center text-red-400">
+                <p>{{ fetchError }}</p>
+                <button class="btn btn-secondary mt-4" @click="fetchProducts">Retry</button>
+            </div>
+
+            <!-- Empty state -->
+            <div v-else-if="products.length === 0" class="glass rounded-xl p-16 text-center">
+                <div class="text-5xl mb-4">📦</div>
+                <p class="text-slate-400 text-sm">No products yet. Add your first product!</p>
+            </div>
+
+            <!-- Product table -->
+            <div v-else class="glass rounded-xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="tbl w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="text-left">Name</th>
+                                <th class="text-left">Description</th>
+                                <th class="text-left">Top Features</th>
+                                <th class="text-left">Category</th>
+                                <th class="text-center">Live</th>
+                                <th class="text-center">Sellable</th>
+                                <th class="text-right">Sell Price</th>
+                                <th class="text-right">Orig Price</th>
+                                <th class="text-right">Discount %</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="p in products" :key="p.id">
+                                <td class="font-medium text-slate-200 max-w-xs">
+                                    <div class="truncate" :title="p.name">{{ p.name }}</div>
+                                </td>
+                                <td class="text-slate-400 max-w-xs">
+                                    <div class="truncate" :title="p.description">{{ p.description || '—' }}</div>
+                                </td>
+                                <td>
+                                    <ul v-if="p.top_features && p.top_features.length"
+                                        class="list-disc list-inside text-slate-400 space-y-0.5 text-xs">
+                                        <li v-for="f in p.top_features.slice(0,3)" :key="f" class="truncate max-w-48"
+                                            :title="f">{{ f }}</li>
+                                        <li v-if="p.top_features.length > 3" class="text-slate-500 italic">+{{
+                                            p.top_features.length - 3 }} more</li>
+                                    </ul>
+                                    <span v-else class="text-slate-600">—</span>
+                                </td>
+                                <td class="text-slate-400">{{ p.category || '—' }}</td>
+                                <td class="text-center">
+                                    <span :class="p.is_live ? 'badge-green' : 'badge-red'" class="badge">
+                                        <span>{{ p.is_live ? '●' : '●' }}</span>
+                                        {{ p.is_live ? 'Live' : 'Off' }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span :class="p.is_sellable ? 'badge-green' : 'badge-red'" class="badge">
+                                        {{ p.is_sellable ? 'Yes' : 'No' }}
+                                    </span>
+                                </td>
+                                <td class="text-right font-mono text-slate-300">{{ p.selling_price != null ? '₹' +
+                                    Number(p.selling_price).toFixed(2) : '—' }}</td>
+                                <td class="text-right font-mono text-slate-400 line-through">{{ p.original_price != null
+                                    ? '₹' + Number(p.original_price).toFixed(2) : '—' }}</td>
+                                <td class="text-right text-slate-300">{{ p.discount_percentage != null ?
+                                    Number(p.discount_percentage).toFixed(1) + '%' : '—' }}</td>
+                                <td>
+                                    <div class="flex items-center gap-1.5 flex-wrap justify-center">
+                                        <!-- Crawl button -->
+                                        <button class="btn btn-crawl" :disabled="crawlLoading[p.id] || runAllLoading"
+                                            @click="crawlProduct(p.id)" :id="'btn-crawl-' + p.id">
+                                            <span v-if="crawlLoading[p.id]" class="spinner"></span>
+                                            <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            Crawl
+                                        </button>
+                                        <!-- See Results button (cached) -->
+                                        <button v-if="crawlResults[p.id]" class="btn btn-see" @click="openResults(p.id)"
+                                            :id="'btn-see-' + p.id">
+                                            👁 Results
+                                        </button>
+                                        <!-- Edit -->
+                                        <button class="btn btn-edit" @click="openEditModal(p)" :id="'btn-edit-' + p.id">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Edit
+                                        </button>
+                                        <!-- Delete -->
+                                        <button class="btn btn-delete" @click="confirmDelete(p)"
+                                            :id="'btn-delete-' + p.id">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- ══════════════ ADD / EDIT MODAL ══════════════ -->
+        <transition name="fade">
+            <div v-if="showProductModal" class="backdrop" @click.self="closeProductModal">
+                <div class="glass rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+                    @click.stop>
+                    <div
+                        class="sticky top-0 z-10 glass px-6 pt-6 pb-4 border-b border-white/5 flex items-center justify-between">
+                        <h2 class="text-lg font-bold text-white">{{ editingProduct ? 'Edit Product' : 'Add Product' }}
+                        </h2>
+                        <button class="text-slate-400 hover:text-white transition-colors" @click="closeProductModal">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2">
+                                <label class="field-label">Name *</label>
+                                <input v-model="form.name" type="text" class="field" placeholder="Product name"
+                                    id="form-name" />
+                            </div>
+                            <div class="col-span-2">
+                                <label class="field-label">Description</label>
+                                <textarea v-model="form.description" class="field" rows="3"
+                                    placeholder="Product description" id="form-description"></textarea>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="field-label">Top Features <span
+                                        class="text-slate-500 normal-case font-normal">(JSON array of
+                                        strings)</span></label>
+                                <textarea v-model="form.top_features_raw" class="field font-mono text-xs" rows="3"
+                                    placeholder='["Feature A", "Feature B"]' id="form-top-features"></textarea>
+                                <p v-if="formErrors.top_features" class="text-red-400 text-xs mt-1">{{
+                                    formErrors.top_features }}</p>
+                            </div>
+                            <div>
+                                <label class="field-label">Category</label>
+                                <input v-model="form.category" type="text" class="field" placeholder="Electronics"
+                                    id="form-category" />
+                            </div>
+                            <div class="flex flex-col gap-3 justify-center">
+                                <div class="toggle-wrap" @click="form.is_live = !form.is_live" id="toggle-is-live">
+                                    <div class="toggle-track" :class="form.is_live ? 'on' : 'off'">
+                                        <div class="toggle-thumb" :class="form.is_live ? 'on' : 'off'"></div>
+                                    </div>
+                                    <span class="text-sm text-slate-300">Is Live</span>
+                                </div>
+                                <div class="toggle-wrap" @click="form.is_sellable = !form.is_sellable"
+                                    id="toggle-is-sellable">
+                                    <div class="toggle-track" :class="form.is_sellable ? 'on' : 'off'">
+                                        <div class="toggle-thumb" :class="form.is_sellable ? 'on' : 'off'"></div>
+                                    </div>
+                                    <span class="text-sm text-slate-300">Is Sellable</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="field-label">Selling Price</label>
+                                <input v-model.number="form.selling_price" type="number" step="0.01" class="field"
+                                    placeholder="999.00" id="form-selling-price" />
+                            </div>
+                            <div>
+                                <label class="field-label">Original Price</label>
+                                <input v-model.number="form.original_price" type="number" step="0.01" class="field"
+                                    placeholder="1299.00" id="form-original-price" />
+                            </div>
+                            <div>
+                                <label class="field-label">Discount %</label>
+                                <input v-model.number="form.discount_percentage" type="number" step="0.01" class="field"
+                                    placeholder="23.00" id="form-discount" />
+                            </div>
+                            <div class="col-span-2">
+                                <label class="field-label">Retailers <span
+                                        class="text-slate-500 normal-case font-normal">(JSON array)</span></label>
+                                <textarea v-model="form.retailers_raw" class="field font-mono text-xs" rows="8"
+                                    id="form-retailers"
+                                    placeholder='[{"platform":"Amazon","url":"https://...","locators":{"name":"#productTitle",...}}]'></textarea>
+                                <p v-if="formErrors.retailers" class="text-red-400 text-xs mt-1">{{ formErrors.retailers
+                                    }}</p>
+                            </div>
+                        </div>
+                        <div v-if="formErrors.general"
+                            class="text-red-400 text-sm bg-red-500/10 rounded-lg p-3 border border-red-500/20">{{
+                            formErrors.general }}</div>
+                    </div>
+                    <div
+                        class="sticky bottom-0 glass px-6 py-4 border-t border-white/5 flex items-center justify-end gap-3">
+                        <button class="btn btn-secondary" @click="closeProductModal" id="form-cancel">Cancel</button>
+                        <button class="btn btn-primary" @click="submitProduct" :disabled="formSubmitting"
+                            id="form-submit">
+                            <span v-if="formSubmitting" class="spinner"></span>
+                            {{ editingProduct ? 'Save Changes' : 'Add Product' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- ══════════════ DELETE CONFIRMATION ══════════════ -->
+        <transition name="fade">
+            <div v-if="deletingProduct" class="backdrop" @click.self="deletingProduct = null">
+                <div class="glass rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-red-500/15 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-white font-bold text-lg mb-2">Delete Product?</h3>
+                    <p class="text-slate-400 text-sm mb-6">This will permanently delete <strong
+                            class="text-slate-200">{{ deletingProduct?.name }}</strong>. This action cannot be undone.
+                    </p>
+                    <div class="flex gap-3 justify-center">
+                        <button class="btn btn-secondary" @click="deletingProduct = null"
+                            id="delete-cancel">Cancel</button>
+                        <button class="btn btn-danger" @click="deleteProduct" :disabled="deleteLoading"
+                            id="delete-confirm">
+                            <span v-if="deleteLoading" class="spinner"></span>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- ══════════════ RESULTS MODAL ══════════════ -->
+        <transition name="fade">
+            <div v-if="showResultsModal && currentResult" class="backdrop" @click.self="closeResults">
+                <div class="glass rounded-2xl shadow-2xl w-full mx-4 max-h-[92vh] overflow-hidden flex flex-col"
+                    style="max-width: 1100px;">
+                    <!-- Header -->
+                    <div class="px-6 pt-6 pb-4 border-b border-white/5 flex items-center justify-between flex-shrink-0">
+                        <div>
+                            <h2 class="text-lg font-bold text-white">Crawl Results</h2>
+                            <p class="text-slate-400 text-sm mt-0.5">{{ currentResult.product_name }}</p>
+                        </div>
+                        <button class="text-slate-400 hover:text-white transition-colors" @click="closeResults"
+                            id="results-close">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Scrollable content -->
+                    <div class="overflow-auto flex-1 p-6">
+                        <div class="overflow-x-auto">
+                            <table class="res-tbl w-full border-collapse" style="min-width: 600px;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left w-48">Field / Expected</th>
+                                        <th v-for="r in currentResult.retailers" :key="r.platform" class="text-left">
+                                            <div class="font-bold text-indigo-400">{{ r.platform }}</div>
+                                            <div class="text-slate-500 text-xs font-normal truncate max-w-48"
+                                                :title="r.url">{{ r.url }}</div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="field in resultFields" :key="field.key">
+                                        <!-- Expected column -->
+                                        <td>
+                                            <div
+                                                class="font-semibold text-slate-300 text-xs mb-1 uppercase tracking-wider">
+                                                {{ field.label }}</div>
+                                            <div class="text-slate-400 text-xs">
+                                                <template v-if="Array.isArray(getExpected(field.key))">
+                                                    <ul class="list-disc list-inside space-y-0.5 text-xs">
+                                                        <li v-for="item in getExpected(field.key)" :key="item"
+                                                            class="truncate">{{ item }}</li>
+                                                    </ul>
+                                                </template>
+                                                <template
+                                                    v-else-if="getExpected(field.key) === true || getExpected(field.key) === false">
+                                                    <span :class="getExpected(field.key) ? 'badge-green' : 'badge-red'"
+                                                        class="badge text-xs">{{ getExpected(field.key) ? 'Yes' : 'No'
+                                                        }}</span>
+                                                </template>
+                                                <template v-else>
+                                                    <code>{{ getExpected(field.key) ?? '—' }}</code>
+                                                </template>
+                                            </div>
+                                        </td>
+                                        <!-- Retailer columns -->
+                                        <td v-for="r in currentResult.retailers" :key="r.platform">
+                                            <template v-if="r.fields && r.fields[field.key] !== undefined">
+                                                <div class="flex items-start gap-2">
+                                                    <span class="text-lg leading-none mt-0.5">{{
+                                                        r.fields[field.key].match ? '✅' : '🔴' }}</span>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="text-xs"
+                                                            :class="r.fields[field.key].match ? 'match-yes' : 'match-no'">
+                                                            <template v-if="Array.isArray(r.fields[field.key].found)">
+                                                                <ul class="list-disc list-inside space-y-0.5">
+                                                                    <li v-for="item in r.fields[field.key].found"
+                                                                        :key="item" class="truncate">{{ item }}</li>
+                                                                </ul>
+                                                            </template>
+                                                            <template
+                                                                v-else-if="r.fields[field.key].found === true || r.fields[field.key].found === false">
+                                                                <span
+                                                                    :class="r.fields[field.key].found ? 'badge-green' : 'badge-red'"
+                                                                    class="badge text-xs">{{ r.fields[field.key].found ?
+                                                                    'Yes' : 'No' }}</span>
+                                                            </template>
+                                                            <template v-else>
+                                                                <code>{{ r.fields[field.key].found }}</code>
+                                                            </template>
+                                                        </div>
+                                                        <!-- Screenshot thumbnail -->
+                                                        <img v-if="r.fields[field.key].screenshot"
+                                                            :src="'data:image/png;base64,' + r.fields[field.key].screenshot"
+                                                            class="thumb" alt="screenshot"
+                                                            @click="openScreenshot(r.fields[field.key].screenshot)" />
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <span class="text-slate-600 text-xs">—</span>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- ══════════════ SCREENSHOT POPOVER ══════════════ -->
+        <transition name="fade">
+            <div v-if="fullscreenScreenshot" class="backdrop" style="z-index:60;"
+                @click.self="fullscreenScreenshot = null">
+                <div class="relative max-w-4xl max-h-[90vh] mx-4" @click.stop>
+                    <button
+                        class="absolute -top-3 -right-3 z-10 w-8 h-8 rounded-full bg-slate-700 border border-white/10 text-white flex items-center justify-center hover:bg-slate-600 transition-colors"
+                        @click="fullscreenScreenshot = null" id="screenshot-close">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <img :src="'data:image/png;base64,' + fullscreenScreenshot"
+                        class="rounded-xl shadow-2xl max-w-full max-h-[85vh] object-contain border border-white/10"
+                        alt="Full screenshot" />
+                </div>
+            </div>
+        </transition>
+
+    </div><!-- #app -->
+
+    <script>
+
+        const { createApp, ref, reactive, computed, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                // ── State ──────────────────────────────
+                const products = ref([]);
+                const loading = ref(true);
+                const fetchError = ref(null);
+                const runAllLoading = ref(false);
+
+                const crawlLoading = reactive({}); // product_id → bool
+                const crawlResults = reactive({}); // product_id → result
+
+                const showProductModal = ref(false);
+                const editingProduct = ref(null);
+                const formSubmitting = ref(false);
+                const form = reactive({
+                    name: '',
+                    description: '',
+                    top_features_raw: '[]',
+                    category: '',
+                    is_live: false,
+                    is_sellable: false,
+                    selling_price: null,
+                    original_price: null,
+                    discount_percentage: null,
+                    retailers_raw: '[]',
+                });
+                const formErrors = reactive({ top_features: '', retailers: '', general: '' });
+
+                const deletingProduct = ref(null);
+                const deleteLoading = ref(false);
+
+                const showResultsModal = ref(false);
+                const currentResult = ref(null);
+                const fullscreenScreenshot = ref(null);
+
+                const resultFields = [
+                    { key: 'name', label: 'Name' },
+                    { key: 'description', label: 'Description' },
+                    { key: 'top_features', label: 'Top Features' },
+                    { key: 'category', label: 'Category' },
+                    { key: 'is_sellable', label: 'Is Sellable' },
+                    { key: 'selling_price', label: 'Selling Price' },
+                    { key: 'original_price', label: 'Original Price' },
+                    { key: 'discount_percentage', label: 'Discount %' },
+                ];
+
+                // ── Helpers ────────────────────────────
+                function getExpected(fieldKey) {
+                    if (!currentResult.value) return null;
+                    const r0 = currentResult.value.retailers?.[0];
+                    return r0?.fields?.[fieldKey]?.expected ?? null;
+                }
+
+                // ── Products CRUD ──────────────────────
+                async function fetchProducts() {
+                    loading.value = true;
+                    fetchError.value = null;
+                    try {
+                        const res = await fetch(`${FASTAPI_URL}/api/products`);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        products.value = await res.json();
+                    } catch (e) {
+                        fetchError.value = `Failed to load products: ${e.message}`;
+                    } finally {
+                        loading.value = false;
+                    }
+                }
+
+                function resetForm() {
+                    form.name = ''; form.description = ''; form.top_features_raw = '[]';
+                    form.category = ''; form.is_live = false; form.is_sellable = false;
+                    form.selling_price = null; form.original_price = null; form.discount_percentage = null;
+                    form.retailers_raw = '[]';
+                    formErrors.top_features = ''; formErrors.retailers = ''; formErrors.general = '';
+                }
+
+                function openAddModal() {
+                    editingProduct.value = null;
+                    resetForm();
+                    showProductModal.value = true;
+                }
+
+                function openEditModal(p) {
+                    editingProduct.value = p;
+                    form.name = p.name || '';
+                    form.description = p.description || '';
+                    form.top_features_raw = JSON.stringify(p.top_features || [], null, 2);
+                    form.category = p.category || '';
+                    form.is_live = p.is_live || false;
+                    form.is_sellable = p.is_sellable || false;
+                    form.selling_price = p.selling_price != null ? Number(p.selling_price) : null;
+                    form.original_price = p.original_price != null ? Number(p.original_price) : null;
+                    form.discount_percentage = p.discount_percentage != null ? Number(p.discount_percentage) : null;
+                    form.retailers_raw = JSON.stringify(p.retailers || [], null, 2);
+                    formErrors.top_features = ''; formErrors.retailers = ''; formErrors.general = '';
+                    showProductModal.value = true;
+                }
+
+                function closeProductModal() {
+                    showProductModal.value = false;
+                    editingProduct.value = null;
+                }
+
+                async function submitProduct() {
+                    formErrors.top_features = ''; formErrors.retailers = ''; formErrors.general = '';
+
+                    let top_features;
+                    try { top_features = JSON.parse(form.top_features_raw || '[]'); }
+                    catch { formErrors.top_features = 'Invalid JSON'; return; }
+
+                    let retailers;
+                    try { retailers = JSON.parse(form.retailers_raw || '[]'); }
+                    catch { formErrors.retailers = 'Invalid JSON'; return; }
+
+                    if (!form.name.trim()) { formErrors.general = 'Name is required.'; return; }
+
+                    const payload = {
+                        name: form.name.trim(),
+                        description: form.description || null,
+                        top_features,
+                        category: form.category || null,
+                        is_live: form.is_live,
+                        is_sellable: form.is_sellable,
+                        selling_price: form.selling_price,
+                        original_price: form.original_price,
+                        discount_percentage: form.discount_percentage,
+                        retailers,
+                    };
+
+                    formSubmitting.value = true;
+                    try {
+                        const url = editingProduct.value
+                            ? `${FASTAPI_URL}/api/products/${editingProduct.value.id}`
+                            : `${FASTAPI_URL}/api/products`;
+                        const method = editingProduct.value ? 'PUT' : 'POST';
+                        const res = await fetch(url, {
+                            method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload),
+                        });
+                        if (!res.ok) {
+                            const err = await res.json();
+                            throw new Error(err.detail || `HTTP ${res.status}`);
+                        }
+                        closeProductModal();
+                        await fetchProducts();
+                    } catch (e) {
+                        formErrors.general = `Error: ${e.message}`;
+                    } finally {
+                        formSubmitting.value = false;
+                    }
+                }
+
+                // ── Delete ─────────────────────────────
+                function confirmDelete(p) {
+                    deletingProduct.value = p;
+                }
+
+                async function deleteProduct() {
+                    if (!deletingProduct.value) return;
+                    deleteLoading.value = true;
+                    try {
+                        const res = await fetch(`${FASTAPI_URL}/api/products/${deletingProduct.value.id}`, { method: 'DELETE' });
+                        if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status}`);
+                        deletingProduct.value = null;
+                        await fetchProducts();
+                    } catch (e) {
+                        alert(`Delete failed: ${e.message}`);
+                    } finally {
+                        deleteLoading.value = false;
+                    }
+                }
+
+                // ── Crawl ──────────────────────────────
+                async function crawlProduct(productId) {
+                    crawlLoading[productId] = true;
+                    try {
+                        const res = await fetch(`${FASTAPI_URL}/api/sync/run/${productId}`, { method: 'POST' });
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const result = await res.json();
+                        crawlResults[productId] = result;
+                        openResults(productId);
+                    } catch (e) {
+                        alert(`Crawl failed: ${e.message}`);
+                    } finally {
+                        crawlLoading[productId] = false;
+                    }
+                }
+
+                async function runAll() {
+                    runAllLoading.value = true;
+                    try {
+                        const res = await fetch(`${FASTAPI_URL}/api/sync/run`, { method: 'POST' });
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const results = await res.json();
+                        results.forEach(r => {
+                            if (r.product_id) crawlResults[r.product_id] = r;
+                        });
+                    } catch (e) {
+                        alert(`Run All failed: ${e.message}`);
+                    } finally {
+                        runAllLoading.value = false;
+                    }
+                }
+
+                // ── Results Modal ─────────────────────
+                function openResults(productId) {
+                    currentResult.value = crawlResults[productId];
+                    showResultsModal.value = true;
+                }
+
+                function closeResults() {
+                    showResultsModal.value = false;
+                }
+
+                function openScreenshot(b64) {
+                    fullscreenScreenshot.value = b64;
+                }
+
+                // ── Lifecycle ─────────────────────────
+                onMounted(() => { fetchProducts(); });
+
+                return {
+                    products, loading, fetchError, runAllLoading,
+                    crawlLoading, crawlResults,
+                    showProductModal, editingProduct, formSubmitting, form, formErrors,
+                    deletingProduct, deleteLoading,
+                    showResultsModal, currentResult, fullscreenScreenshot, resultFields,
+                    fetchProducts, openAddModal, openEditModal, closeProductModal, submitProduct,
+                    confirmDelete, deleteProduct, crawlProduct, runAll,
+                    openResults, closeResults, openScreenshot, getExpected,
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+{% endraw %}
+
+</html>
