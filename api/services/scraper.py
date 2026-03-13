@@ -33,7 +33,7 @@ ELEMENT_TIMEOUT = 8000
 PAGE_TIMEOUT = 20000
 
 # Extra settle time (ms) after DOM connects — gives JS frameworks time to mount
-SETTLE_MS = 1500
+SETTLE_MS = 3000
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -147,41 +147,47 @@ FIELD_MAP = {
 }
 
 
-# ── Stealth JS injected before every page ────────────────────────────────────
+import json
+import os
 
-_STEALTH_JS = """
-// Hide webdriver flag
-Object.defineProperty(navigator, 'webdriver', { get: () => false });
+# ── Config Loading ────────────────────────────────────────────────────────────
 
-// Spoof plugins array
-Object.defineProperty(navigator, 'plugins', {
-    get: () => [1, 2, 3, 4, 5],
-});
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "configs", "browser_configs.json")
 
-// Spoof languages
-Object.defineProperty(navigator, 'languages', {
-    get: () => ['en-US', 'en'],
-});
-"""
+def _get_browser_config(platform: str) -> dict:
+    try:
+        with open(CONFIG_PATH, "r") as f:
+            configs = json.load(f)
+        return configs.get(platform, configs.get("default", {}))
+    except Exception:
+        # Fallback to a safe default if file missing or corrupt
+        return {
+            "browser_type": "chromium",
+            "launch_options": {"headless": True},
+            "context_options": {"java_script_enabled": True}
+        }
 
+# ── Selective stealth injection (disabled by default as modern CDNs detect it) ──
+_STEALTH_JS = ""
 
 # ── Core scraping for one retailer ───────────────────────────────────────────
 
 async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
     """
     Navigate to a retailer URL and extract each specified locator field.
-    Returns the result dict per the spec response shape.
     """
     url = retailer.get("url", "")
     platform = retailer.get("platform", "")
     locators: dict = retailer.get("locators", {})
+    
+    config = _get_browser_config(platform)
 
-    # Inject stealth JS before the page starts loading
-    await page.add_init_script(_STEALTH_JS)
+    # Added a delay to simulate human dwell time if specified in config
+    delay_ms = config.get("delay_before_nav_ms", 0)
+    if delay_ms > 0:
+        await asyncio.sleep(delay_ms / 1000.0)
 
     try:
-        # wait_until="domcontentloaded" is much faster than networkidle and load.
-        # Retailer pages with tracking/analytics polling often NEVER reach networkidle.
         await page.goto(url, wait_until="domcontentloaded", timeout=PAGE_TIMEOUT)
     except Exception as e:
         return {
@@ -191,7 +197,7 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
             "fields": {},
         }
 
-    # Give JS frameworks (React/Angular/Vue) a moment to finish rendering
+    # Give JS frameworks time to finish rendering
     await page.wait_for_timeout(SETTLE_MS)
 
     fields_result = {}
@@ -199,14 +205,12 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
     for locator_key, css in locators.items():
         product_field = FIELD_MAP.get(locator_key, locator_key)
 
-        # Determine expected value from product
         if locator_key == "add_to_cart":
             expected = getattr(product, "is_sellable", None)
         else:
             raw_expected = getattr(product, product_field, None)
             expected = float(raw_expected) if isinstance(raw_expected, Decimal) else raw_expected
 
-        # Skip Playwright lookup entirely if the locator is null in the JSON
         if css is None:
             found, screenshot = "locator_not_found", None
         else:
@@ -244,56 +248,51 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
         "fields": fields_result,
     }
 
-
 # ── Public API ────────────────────────────────────────────────────────────────
 
 async def scrape_product(product: Any) -> dict:
     """
-    Scrape all retailers for a single product, in parallel.
-    Returns the full result dict per the spec response shape.
+    Scrape all retailers for a single product. 
+    Grouped by browser type to optimize resource usage while respecting per-site needs.
     """
     retailers = product.retailers or []
+    retailer_results = []
+
+    # Map browser_type -> [retailers]
+    groups = {}
+    for r in retailers:
+        platform = r.get("platform", "")
+        config = _get_browser_config(platform)
+        b_type = config.get("browser_type", "chromium")
+        if b_type not in groups:
+            groups[b_type] = []
+        groups[b_type].append((r, config))
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-blink-features=AutomationControlled",
-                "--disable-infobars",
-                "--disable-dev-shm-usage",
-            ],
-        )
-        try:
-            async def scrape_one(retailer: dict) -> dict:
-                context = await browser.new_context(
-                    user_agent=(
-                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                        "AppleWebKit/537.36 (KHTML, like Gecko) "
-                        "Chrome/131.0.0.0 Safari/537.36"
-                    ),
-                    viewport={"width": 1440, "height": 900},
-                    # Pretend to be a real browser with common headers
-                    extra_http_headers={
-                        "Accept-Language": "en-US,en;q=0.9",
-                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                    },
-                    java_script_enabled=True,
-                    ignore_https_errors=True,
-                )
-                page = await context.new_page()
-                try:
-                    result = await _scrape_retailer(page, retailer, product)
-                finally:
-                    await context.close()
-                return result
-
-            retailer_results = await asyncio.gather(*[scrape_one(r) for r in retailers])
-        finally:
-            await browser.close()
+        for b_type, items in groups.items():
+            browser_launcher = getattr(pw, b_type)
+            # Take launch options from the first retailer in the group
+            # (In practice, retailers in a group should share launch options)
+            launch_options = items[0][1].get("launch_options", {})
+            
+            browser = await browser_launcher.launch(**launch_options)
+            try:
+                for r, config in items:
+                    context_options = config.get("context_options", {})
+                    extra_headers = config.get("extra_headers", {})
+                    
+                    context = await browser.new_context(**context_options, extra_http_headers=extra_headers)
+                    try:
+                        page = await context.new_page()
+                        res = await _scrape_retailer(page, r, product)
+                        retailer_results.append(res)
+                    finally:
+                        await context.close()
+            finally:
+                await browser.close()
 
     return {
         "product_id": product.id,
         "product_name": product.name,
-        "retailers": list(retailer_results),
+        "retailers": retailer_results,
     }
