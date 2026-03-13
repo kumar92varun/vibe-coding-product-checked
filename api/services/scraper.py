@@ -167,8 +167,35 @@ def _get_browser_config(platform: str) -> dict:
             "context_options": {"java_script_enabled": True}
         }
 
-# ── Selective stealth injection (disabled by default as modern CDNs detect it) ──
-_STEALTH_JS = ""
+# ── Stealth JS — injected only for platforms with "stealth": true ─────────────
+# Patches the most common bot-detection fingerprint checks without triggering
+# CDN heuristics that specifically look for wholesale webdriver removal.
+
+_STEALTH_JS = """
+// Mask webdriver flag (undefined, not false — real browsers have no property)
+Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+
+// Non-empty plugins list (empty = headless giveaway)
+Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+
+// Real language list
+Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+
+// window.chrome must exist in a real Chrome context
+if (typeof window.chrome === 'undefined') {
+    window.chrome = { runtime: {} };
+}
+
+// Permissions API — headless returns 'denied' for notifications; real browsers return 'default'
+if (navigator.permissions && navigator.permissions.query) {
+    const _origQuery = navigator.permissions.query.bind(navigator.permissions);
+    navigator.permissions.query = (params) =>
+        params.name === 'notifications'
+            ? Promise.resolve({ state: 'default' })
+            : _origQuery(params);
+}
+"""
+
 
 # ── Core scraping for one retailer ───────────────────────────────────────────
 
@@ -180,6 +207,10 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
     platform = retailer.get("platform", "")
     config = _get_browser_config(platform)
     locators: dict = config.get("locators", {})
+
+    # Inject stealth JS before any navigation for platforms that opt in
+    if config.get("stealth"):
+        await page.add_init_script(_STEALTH_JS)
 
     # Added a delay to simulate human dwell time if specified in config
     delay_ms = config.get("delay_before_nav_ms", 0)
@@ -280,7 +311,12 @@ async def scrape_product(product: Any) -> dict:
                     context_options = config.get("context_options", {})
                     extra_headers = config.get("extra_headers", {})
                     
-                    context = await browser.new_context(**context_options, extra_http_headers=extra_headers)
+                    proxy = config.get("proxy")
+                    context = await browser.new_context(
+                        **context_options,
+                        extra_http_headers=extra_headers,
+                        **({"proxy": proxy} if proxy else {}),
+                    )
                     try:
                         page = await context.new_page()
                         res = await _scrape_retailer(page, r, product)

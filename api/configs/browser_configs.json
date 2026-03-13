@@ -47,6 +47,7 @@
             "Connection": "keep-alive"
         },
         "delay_before_nav_ms": 2000,
+        "stealth": true,
         "locators": {
             "name": "h1.product-title",
             "description": "#productDetailsTabContent div.inner p:first-child",
@@ -76,11 +77,11 @@
         },
         "locators": {
             "name": "h1#product-name span",
-            "description": "p[_ngcontent-ng-c297494238][itemprop=\"description\"].description",
-            "top_features": "div[_ngcontent-ng-c297494238].features ul[_ngcontent-ng-c297494238].nobul span ul",
-            "category": "#wayfinding-breadcrumbs_feature_div",
+            "description": "[itemprop=\"description\"].description",
+            "top_features": ".features ul.nobul span ul",
+            "category": null,
             "add_to_cart": "button#add-to-bag-button",
-            "selling_price": "span[_ngcontent-ng-c572501101]#price",
+            "selling_price": "#price",
             "original_price": ".pdp-landing-header__pricing__compare__value strikethrough-comp",
             "discount_percentage": ".savingsPercentage"
         }
