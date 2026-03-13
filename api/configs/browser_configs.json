@@ -14,6 +14,16 @@
                 "height": 1080
             },
             "java_script_enabled": true
+        },
+        "locators": {
+            "name": null,
+            "description": null,
+            "top_features": null,
+            "category": null,
+            "add_to_cart": null,
+            "selling_price": null,
+            "original_price": null,
+            "discount_percentage": null
         }
     },
     "Kohls": {
@@ -36,7 +46,17 @@
             "Accept-Language": "en-US,en;q=0.9",
             "Connection": "keep-alive"
         },
-        "delay_before_nav_ms": 2000
+        "delay_before_nav_ms": 2000,
+        "locators": {
+            "name": "h1.product-title",
+            "description": "#productDetailsTabContent div.inner p:first-child",
+            "top_features": "#productDetailsTabContent div.inner ul:first-child",
+            "category": ".bread-crupms",
+            "add_to_cart": "input[type=\"button\"]#addtobagID",
+            "selling_price": ".pdpprice-row2-main-text",
+            "original_price": null,
+            "discount_percentage": null
+        }
     },
     "DSW": {
         "browser_type": "chromium",
@@ -53,6 +73,16 @@
                 "height": 1080
             },
             "java_script_enabled": true
+        },
+        "locators": {
+            "name": "h1#product-name span",
+            "description": "p[_ngcontent-ng-c297494238][itemprop=\"description\"].description",
+            "top_features": "div[_ngcontent-ng-c297494238].features ul[_ngcontent-ng-c297494238].nobul span ul",
+            "category": "#wayfinding-breadcrumbs_feature_div",
+            "add_to_cart": "button#add-to-bag-button",
+            "selling_price": "span[_ngcontent-ng-c572501101]#price",
+            "original_price": ".pdp-landing-header__pricing__compare__value strikethrough-comp",
+            "discount_percentage": ".savingsPercentage"
         }
     }
 }

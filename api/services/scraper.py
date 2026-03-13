@@ -178,9 +178,8 @@ async def _scrape_retailer(page: Page, retailer: dict, product: Any) -> dict:
     """
     url = retailer.get("url", "")
     platform = retailer.get("platform", "")
-    locators: dict = retailer.get("locators", {})
-    
     config = _get_browser_config(platform)
+    locators: dict = config.get("locators", {})
 
     # Added a delay to simulate human dwell time if specified in config
     delay_ms = config.get("delay_before_nav_ms", 0)
