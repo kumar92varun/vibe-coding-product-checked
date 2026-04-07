@@ -85,7 +85,21 @@ The `retailers` field is a JSON array of objects. Each object must have at minim
 
 **Stealth** is opt-in per retailer via `"stealth": true` in `browser_configs.json`. It injects JS that patches `navigator.webdriver`, plugins, languages, `window.chrome`, and the Permissions API.
 
-**Browser grouping**: retailers sharing the same `browser_type` reuse a single browser instance per `scrape_product` call. Launch options come from the first retailer in each group.
+**Browser grouping**: retailers sharing the same `browser_type` reuse a single browser instance per `scrape_product` call. Launch options come from the first retailer in each group. A new browser context is created per retailer within the group (contexts are not shared).
+
+**Page load strategy**: Pages wait for `domcontentloaded`, then sleep `SETTLE_MS` for JS frameworks to render. Extra headers and proxy settings apply at the context level.
+
+**Field extraction**: When an element is not found within `ELEMENT_TIMEOUT`, `_extract_field()` returns the magic string `"locator_not_found"` (not an exception). Check for this value when debugging missing fields. Feature (`top_features`) extraction tries `<li>` elements first, then falls back to `splitlines()`.
+
+**Comparison logic**:
+- Prices: float delta `< 0.01` (epsilon comparison)
+- Strings (`name`, `description`, `category`): case-insensitive, whitespace-stripped
+- `top_features`: exact list equality
+- `is_sellable`: checks visibility of the `add_to_cart` element
+
+**Screenshots**: Both per-element and full-page screenshots are captured as base64-encoded PNGs and included in sync results. Screenshot failures are silent (returns `None`).
+
+**Sync batching**: `POST /api/sync/run` processes products in batches of 3. Products *within* a batch are scraped in parallel via `asyncio.gather()`; batches run sequentially.
 
 ## Adding a New Retailer
 
