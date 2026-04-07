@@ -3,3 +3,4 @@ venv/
 *.pyc
 curl*
 chrome*
+*/__pycache__/*
