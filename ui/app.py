@@ -11,6 +11,7 @@ from flask import (
 )
 from dotenv import load_dotenv
 from functools import wraps
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Resolve .env from the project root (one level above this file's directory)
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,6 +19,9 @@ load_dotenv(os.path.join(_ROOT, ".env"))
 
 app = Flask(__name__)
 app.secret_key = os.urandom(32)
+# x_prefix=1 reads X-Forwarded-Prefix from Nginx so url_for() generates
+# correct URLs when the app is served under a sub-path
+app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1)
 
 APP_PASSWORD = os.getenv("APP_PASSWORD", "changeme")
 FASTAPI_BASE_URL = os.getenv("FASTAPI_BASE_URL", "http://localhost:8000")
@@ -62,4 +66,4 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True)
