@@ -10,12 +10,14 @@ A full-stack product data integrity verification system. It scrapes product data
 
 Two separate services:
 
-- **FastAPI backend** (`api/`) — REST API on port 8100. Handles product CRUD and web scraping/sync operations.
-- **Flask UI** (`ui/`) — Simple dashboard on port 5000 with password authentication (Vue.js 3 frontend).
+- **FastAPI backend** (`api/`) — REST API on port 8100. Handles product CRUD and web scraping/sync operations. Interactive docs at `http://localhost:8100/docs`.
+- **Flask UI** (`ui/`) — Simple dashboard on port 5000 with password authentication. The single Jinja2 template (`ui/templates/index.html`) loads Vue.js 3 and Tailwind CSS from CDN — no build step. `FASTAPI_BASE_URL` is injected as a Jinja2 template variable and used by the Vue.js app to call the API directly.
 
-The scraper (`api/services/scraper.py`) is the core of the system. It uses Playwright with stealth mode for async browser automation. Per-retailer configuration (CSS selectors, browser type, headers, proxies, viewport) lives in `api/configs/browser_configs.json`. Each product in the DB has a `retailers` JSON field containing an array of retailer objects with URLs and field locators.
+The scraper (`api/services/scraper.py`) is the core of the system. It uses Playwright for async browser automation. Per-retailer configuration (CSS selectors, browser type, headers, proxies, viewport) lives in `api/configs/browser_configs.json`. Each product in the DB has a `retailers` JSON field containing an array of retailer objects with URLs and field locators.
 
-Database: MySQL via SQLAlchemy ORM. Migrations managed by Alembic.
+Database: MySQL via SQLAlchemy ORM (`mysql+pymysql` driver). Migrations managed by Alembic.
+
+There are no automated tests in this project.
 
 ## Running the Services
 
@@ -32,7 +34,7 @@ python ui/app.py
 
 ## Environment
 
-Copy `.env` and configure:
+Copy `.env.example` to `.env` and configure:
 ```
 APP_PASSWORD=...           # Flask UI login password
 DB_HOST=localhost
@@ -106,9 +108,12 @@ The `retailers` field is a JSON array of objects. Each object must have at minim
 1. Add a new entry in `api/configs/browser_configs.json` with the retailer's name as the key. Configure `browser_type`, `launch_options`, `context_options`, `locators` (CSS selectors per field), and optionally `extra_headers`, `proxy`, `stealth`, and `delay_before_nav_ms`.
 2. Add retailer objects (with `platform` matching the new key) to individual products via the UI or API.
 
+`retailers.json` at the project root is a standalone reference file showing example retailer objects with per-product CSS selector overrides (distinct from the global `browser_configs.json` selectors).
+
 ## Notes
 
 - The Flask `secret_key` is regenerated on every restart (`os.urandom(32)`), so all sessions are invalidated on server restart.
+- `playwright-stealth` is listed in `requirements.txt` but is **not imported** anywhere. Stealth behaviour is implemented via the custom `_STEALTH_JS` string injected with `page.add_init_script()` in `scraper.py`.
 
 ## Dependencies
 
