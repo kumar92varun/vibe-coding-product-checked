@@ -85,7 +85,7 @@
     {% endif %}
 
     <!-- Login form -->
-    <form method="POST" action="/login">
+    <form method="POST" action="{{ url_for('login') }}">
       <div class="mb-6">
         <label class="block text-sm font-semibold mb-2"
           style="color:#6b6b6b; letter-spacing:0.03em; text-transform:uppercase;" for="password">Password</label>
